@@ -116,6 +116,7 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
         let mut after_storage_proofs = Vec::new();
 
         for (address, used_keys) in state_requests.iter() {
+            // these are the keys that got touched during the execution
             let modified_keys = executor_outcome
                 .state()
                 .state
@@ -127,6 +128,7 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
                 .into_iter()
                 .collect::<Vec<_>>();
 
+            // these are the keys that the rpcdb used, as well as the modified keys (and deduped)
             let keys = used_keys
                 .iter()
                 .map(|key| B256::from(*key))
@@ -153,7 +155,7 @@ impl<T: Transport + Clone, P: Provider<T, AnyNetwork> + Clone> HostExecutor<T, P
         let state = EthereumState::from_proofs(
             previous_block.state_root,
             &before_storage_proofs.iter().map(|item| (item.address, item.clone())).collect(),
-            &after_storage_proofs.iter().map(|item| (item.address, item.clone())).collect(),
+            Some(&after_storage_proofs.iter().map(|item| (item.address, item.clone())).collect()),
         )?;
 
         // Verify the state root.

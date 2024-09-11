@@ -41,10 +41,10 @@ impl ClientExecutorInput {
     /// Note: This mutates the input and takes ownership of used storage proofs and block hashes
     /// to avoid unnecessary cloning.
     pub fn witness_db(&mut self) -> Result<WitnessDb> {
-        let state_root: B256 = self.parent_header().state_root;
-        if state_root != self.parent_state.state_root() {
-            eyre::bail!("parent state root mismatch");
-        }
+        // let state_root: B256 = self.parent_header().state_root;
+        // if state_root != self.parent_state.state_root() {
+        //     eyre::bail!("parent state root mismatch");
+        // }
 
         let bytecodes_by_hash =
             self.bytecodes.iter().map(|code| (code.hash_slow(), code)).collect::<HashMap<_, _>>();

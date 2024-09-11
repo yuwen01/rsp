@@ -964,7 +964,7 @@ pub fn shorten_node_path(node: &MptNode) -> Vec<MptNode> {
 pub fn proofs_to_tries(
     state_root: B256,
     parent_proofs: &HashMap<Address, AccountProof>,
-    proofs: &HashMap<Address, AccountProof>,
+    proofs: Option<&HashMap<Address, AccountProof>>,
 ) -> Result<EthereumState> {
     // if no addresses are provided, return the trie only consisting of the state root
     if parent_proofs.is_empty() {
@@ -991,10 +991,12 @@ pub fn proofs_to_tries(
             state_nodes.insert(node.reference(), node);
         });
 
-        let fini_proofs = proofs.get(address).unwrap();
-
         // assure that addresses can be deleted from the state trie
-        add_orphaned_leafs(address, &fini_proofs.proof, &mut state_nodes)?;
+        let fini_proofs = proofs.map(|proofs| proofs.get(address).unwrap());
+
+        if let Some(fini_proofs) = fini_proofs {
+            add_orphaned_leafs(address, &fini_proofs.proof, &mut state_nodes)?;
+        }
 
         // if no slots are provided, return the trie only consisting of the storage root
         let storage_root = proof.storage_root;
@@ -1021,9 +1023,12 @@ pub fn proofs_to_tries(
         }
 
         // assure that slots can be deleted from the storage trie
-        for storage_proof in &fini_proofs.storage_proofs {
-            add_orphaned_leafs(storage_proof.key.0, &storage_proof.proof, &mut storage_nodes)?;
+        if let Some(fini_proofs) = fini_proofs {
+            for storage_proof in &fini_proofs.storage_proofs {
+                add_orphaned_leafs(storage_proof.key.0, &storage_proof.proof, &mut storage_nodes)?;
+            }
         }
+
         // create the storage trie, from all the relevant nodes
         let storage_trie = resolve_nodes(&storage_root_node, &storage_nodes);
         assert_eq!(storage_trie.hash(), storage_root);

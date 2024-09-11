@@ -19,7 +19,7 @@ impl EthereumState {
     pub fn from_proofs(
         state_root: B256,
         parent_proofs: &HashMap<Address, AccountProof>,
-        proofs: &HashMap<Address, AccountProof>,
+        proofs: Option<&HashMap<Address, AccountProof>>,
     ) -> Result<Self> {
         proofs_to_tries(state_root, parent_proofs, proofs).map_err(|err| eyre::eyre!("{}", err))
     }
